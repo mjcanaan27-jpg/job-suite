@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Job Application Suite</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #ffffff;
+      --bg-secondary: #f7f7f5;
+      --bg-tertiary: #f1efe8;
+      --text: #1a1a18;
+      --text-secondary: #6b6a65;
+      --border: rgba(0,0,0,0.12);
+      --border-hover: rgba(0,0,0,0.25);
+      --teal: #1D9E75;
+      --teal-dark: #0F6E56;
+      --teal-light: #E1F5EE;
+      --teal-text: #085041;
+      --red-light: #FCEBEB;
+      --red-text: #A32D2D;
+      --amber-light: #FAEEDA;
+      --amber-text: #854F0B;
+      --blue-light: #E6F1FB;
+      --blue-text: #185FA5;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1c1c1a;
+        --bg-secondary: #252523;
+        --bg-tertiary: #2e2e2b;
+        --text: #f0ede6;
+        --text-secondary: #9b9a94;
+        --border: rgba(255,255,255,0.1);
+        --border-hover: rgba(255,255,255,0.22);
+        --teal-light: #04342C;
+        --teal-text: #9FE1CB;
+        --red-light: #501313;
+        --red-text: #F09595;
+        --amber-light: #412402;
+        --amber-text: #FAC775;
+        --blue-light: #042C53;
+        --blue-text: #85B7EB;
+      }
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 14px;
+      color: var(--text);
+      background: var(--bg-secondary);
+      min-height: 100vh;
+    }
+
+    header {
+      background: var(--bg);
+      border-bottom: 0.5px solid var(--border);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 56px;
+    }
+
+    header h1 { font-size: 15px; font-weight: 500; }
+    header span { font-size: 12px; color: var(--text-secondary); }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+
+    @media (max-width: 720px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--bg);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 10px;
+      font-size: 13px;
+      font-family: inherit;
+      color: var(--text);
+      background: var(--bg-secondary);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-md);
+      outline: none;
+      resize: vertical;
+      line-height: 1.6;
+      transition: border-color .15s;
+    }
+    textarea:focus { border-color: var(--border-hover); background: var(--bg); }
+
+    .btn-primary {
+      background: var(--teal);
+      color: white;
+      border: none;
+      padding: 9px 20px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background .15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-primary:hover { background: var(--teal-dark); }
+    .btn-primary:disabled { background: var(--border-hover); color: var(--text-secondary); cursor: not-allowed; }
+
+    .btn-outline {
+      background: transparent;
+      border: 0.5px solid var(--border-hover);
+      padding: 7px 14px;
+      border-radius: var(--radius-md);
+      font-size: 12px;
+      cursor: pointer;
+      color: var(--text);
+      font-family: inherit;
+      transition: background .15s;
+    }
+    .btn-outline:hover { background: var(--bg-secondary); }
+
+    .btn-row { display: flex; gap: 8px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
+
+    /* Score ring */
+    .score-section {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      padding: 1rem 0;
+      border-bottom: 0.5px solid var(--border);
+      margin-bottom: 1rem;
+    }
+
+    .score-ring {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 22px;
+      font-weight: 500;
+      border: 3px solid var(--border);
+      position: relative;
+    }
+    .score-ring.low { border-color: #E24B4A; color: #E24B4A; }
+    .score-ring.mid { border-color: #EF9F27; color: #EF9F27; }
+    .score-ring.high { border-color: var(--teal); color: var(--teal); }
+
+    .score-label { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+    .score-arrow { font-size: 18px; color: var(--text-secondary); }
+    .score-after { font-size: 22px; font-weight: 500; color: var(--teal); }
+
+    /* Keyword pills */
+    .pill-group { margin-bottom: 12px; }
+    .pill-group-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: .4px;
+      margin-bottom: 6px;
+    }
+    .pills { display: flex; flex-wrap: wrap; gap: 6px; }
+
+    .pill {
+      font-size: 12px;
+      padding: 3px 10px;
+      border-radius: var(--radius-md);
+      font-weight: 500;
+    }
+    .pill-missing { background: var(--red-light); color: var(--red-text); }
+    .pill-present { background: var(--teal-light); color: var(--teal-text); }
+    .pill-added { background: var(--blue-light); color: var(--blue-text); }
+
+    /* Output resume */
+    .resume-output {
+      background: var(--bg-secondary);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 1rem;
+      font-size: 13px;
+      line-height: 1.75;
+      white-space: pre-wrap;
+      color: var(--text);
+      max-height: 500px;
+      overflow-y: auto;
+    }
+
+    .output-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .section-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+      margin-top: 1rem;
+    }
+
+    /* Full width bottom section */
+    .full-width {
+      grid-column: 1 / -1;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 13px; height: 13px;
+      border: 2px solid rgba(255,255,255,.35);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .empty-state {
+      text-align: center;
+      padding: 2.5rem 1rem;
+      color: var(--text-secondary);
+      font-size: 13px;
+      border: 0.5px dashed var(--border-hover);
+      border-radius: var(--radius-lg);
+    }
+
+    .progress-bar-wrap {
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+    .progress-bar {
+      height: 100%;
+      border-radius: 3px;
+      background: var(--teal);
+      transition: width .6s ease;
+    }
+    .progress-bar.low { background: #E24B4A; }
+    .progress-bar.mid { background: #EF9F27; }
+
+    .status-msg {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-left: 8px;
+    }
+
+    .tab-row { display: flex; gap: 0; border-bottom: 0.5px solid var(--border); margin-bottom: 1rem; }
+    .tab {
+      padding: 8px 16px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      background: none;
+      border-top: none; border-left: none; border-right: none;
+      cursor: pointer; font-family: inherit;
+    }
+    .tab.active { color: var(--text); border-bottom-color: var(--text); font-weight: 500; }
+
+    .history-item {
+      padding: 10px 12px;
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-md);
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: border-color .15s;
+    }
+    .history-item:hover { border-color: var(--border-hover); }
+    .history-item-title { font-weight: 500; font-size: 13px; }
+    .history-item-meta { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+
+    .highlight { background: #FFF3B0; color: #6B5500; border-radius: 2px; padding: 0 2px; }
+
+    .q-card {
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+    .q-header {
+      padding: 12px 14px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      background: var(--bg);
+      transition: background .15s;
+    }
+    .q-header:hover { background: var(--bg-secondary); }
+    .q-number {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      min-width: 20px;
+      margin-top: 1px;
+    }
+    .q-text { font-size: 13px; font-weight: 500; flex: 1; line-height: 1.5; }
+    .q-theme {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: var(--radius-md);
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .q-chevron { font-size: 12px; color: var(--text-secondary); transition: transform .2s; }
+    .q-chevron.open { transform: rotate(180deg); }
+    .q-body {
+      display: none;
+      padding: 0 14px 14px 34px;
+      background: var(--bg);
+    }
+    .q-body.open { display: block; }
+    .q-section-label {
+      font-size: 11px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+      margin-top: 12px;
+    }
+    .q-section-label:first-child { margin-top: 0; }
+    .q-answer {
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--text);
+    }
+    .q-tip {
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--text-secondary);
+      border-left: 2px solid var(--teal);
+      padding-left: 10px;
+      margin-top: 8px;
+    }
+    .theme-behavioral { background: var(--blue-light); color: var(--blue-text); }
+    .theme-technical { background: var(--teal-light); color: var(--teal-text); }
+    .theme-situational { background: var(--amber-light); color: var(--amber-text); }
+    .theme-culture { background: var(--bg-tertiary); color: var(--text-secondary); }
+    .interview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .expand-all-btn {
+      font-size: 12px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-family: inherit;
+      padding: 0;
+    }
+    .expand-all-btn:hover { color: var(--text); }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Job Application Suite</h1>
+  <span>ATS optimizer · Interview prep</span>
+</header>
+
+<div class="layout">
+
+  <!-- LEFT: Inputs -->
+  <div>
+    <div class="card" style="margin-bottom:1rem">
+      <div class="card-title">Base resume</div>
+      <textarea id="resume-input" rows="12" placeholder="Paste her full resume here..."></textarea>
+      <div style="margin-top:8px">
+        <button class="btn-outline" onclick="loadSampleResume()">Load sample resume</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Job description</div>
+      <textarea id="jd-input" rows="10" placeholder="Paste the full job description here. The more complete, the better the keyword extraction..."></textarea>
+      <div style="margin-top:8px;margin-bottom:10px">
+        <input type="text" id="job-title-input" placeholder="Job title + company (e.g. Customer Onboarding Manager — Eve)" style="width:100%;padding:8px 10px;font-size:13px;font-family:inherit;color:var(--text);background:var(--bg-secondary);border:0.5px solid var(--border);border-radius:var(--radius-md);outline:none" />
+      </div>
+      <div class="btn-row" style="margin-top:0">
+        <button class="btn-primary" id="analyze-btn" onclick="analyze()">
+          Optimize resume
+        </button>
+        <button class="btn-primary" id="interview-btn" onclick="runInterviewPrep()" style="background:var(--blue-text)">
+          Generate interview prep
+        </button>
+        <button class="btn-primary" id="outreach-btn" onclick="runOutreach()" style="background:#534AB7">
+          Generate outreach
+        </button>
+        <span class="status-msg" id="status-msg"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Results -->
+  <div>
+    <div class="card" id="results-card">
+      <div class="tab-row">
+        <button class="tab active" onclick="showResultTab('analysis')">Analysis</button>
+        <button class="tab" onclick="showResultTab('resume')">Optimized resume</button>
+        <button class="tab" onclick="showResultTab('history')">History</button>
+        <button class="tab" onclick="showResultTab('interview')">Interview prep</button>
+        <button class="tab" onclick="showResultTab('outreach')">Outreach</button>
+      </div>
+
+      <!-- Analysis tab -->
+      <div id="tab-analysis">
+        <div id="analysis-empty" class="empty-state">
+          Paste a resume and job description, then click "Analyze &amp; optimize".
+        </div>
+        <div id="analysis-results" style="display:none">
+          <div class="score-section">
+            <div>
+              <div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px">Before</div>
+              <div class="score-ring" id="score-before">—</div>
+            </div>
+            <div class="score-arrow">→</div>
+            <div>
+              <div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px">After optimization</div>
+              <div style="display:flex;align-items:baseline;gap:4px">
+                <span class="score-after" id="score-after">—</span>
+                <span style="font-size:13px;color:var(--teal)">/ 100</span>
+              </div>
+              <div class="progress-bar-wrap" style="width:120px">
+                <div class="progress-bar" id="score-bar" style="width:0%"></div>
+              </div>
+            </div>
+            <div style="margin-left:auto;text-align:right">
+              <div style="font-size:12px;color:var(--text-secondary)">Keywords added</div>
+              <div style="font-size:24px;font-weight:500;color:var(--blue-text)" id="kw-added-count">—</div>
+            </div>
+          </div>
+
+          <div class="pill-group">
+            <div class="pill-group-label">Missing from original (added to optimized resume)</div>
+            <div class="pills" id="pills-missing"></div>
+          </div>
+
+          <div class="pill-group">
+            <div class="pill-group-label">Already present</div>
+            <div class="pills" id="pills-present"></div>
+          </div>
+
+          <div class="pill-group" style="margin-bottom:0">
+            <div class="pill-group-label">Top ATS phrases to watch for</div>
+            <div class="pills" id="pills-phrases"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resume tab -->
+      <div id="tab-resume" style="display:none">
+        <div id="resume-empty" class="empty-state">
+          Run an analysis first to generate an optimized resume.
+        </div>
+        <div id="resume-results" style="display:none">
+          <div class="output-header">
+            <span style="font-size:12px;color:var(--text-secondary)" id="resume-label">Optimized for: —</span>
+            <div style="display:flex;gap:8px">
+              <button class="btn-outline" onclick="copyResume()">Copy</button>
+              <button class="btn-outline" onclick="downloadResume()">Download .txt</button>
+            </div>
+          </div>
+          <div class="resume-output" id="resume-output"></div>
+        </div>
+      </div>
+
+
+      <!-- Interview prep tab -->
+      <div id="tab-interview" style="display:none">
+        <div id="interview-empty" class="empty-state">
+          Run an analysis first to generate interview questions.
+        </div>
+        <div id="interview-results" style="display:none">
+          <div class="interview-header">
+            <span style="font-size:12px;color:var(--text-secondary)" id="interview-label">Prepared for: —</span>
+            <button class="expand-all-btn" onclick="toggleAllQuestions()">Expand all</button>
+          </div>
+          <div id="questions-list"></div>
+        </div>
+      </div>
+      <!-- Outreach tab -->
+      <div id="tab-outreach" style="display:none">
+        <div id="outreach-empty" class="empty-state">
+          Run "Generate outreach" to create LinkedIn and email messages.
+        </div>
+        <div id="outreach-results" style="display:none">
+          <div style="font-size:12px;color:var(--text-secondary);margin-bottom:1rem" id="outreach-label">Outreach for: —</div>
+
+          <div style="margin-bottom:1.25rem">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="font-size:13px;font-weight:500">LinkedIn message</span>
+                <span style="font-size:11px;padding:2px 8px;border-radius:var(--radius-md);background:var(--blue-light);color:var(--blue-text);font-weight:500">~300 chars</span>
+              </div>
+              <button class="btn-outline" style="font-size:12px;padding:4px 10px" onclick="copyText('linkedin-output', this)">Copy</button>
+            </div>
+            <div class="resume-output" id="linkedin-output" style="min-height:80px"></div>
+          </div>
+
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="font-size:13px;font-weight:500">Email to hiring manager</span>
+                <span style="font-size:11px;padding:2px 8px;border-radius:var(--radius-md);background:var(--teal-light);color:var(--teal-text);font-weight:500">~150 words</span>
+              </div>
+              <button class="btn-outline" style="font-size:12px;padding:4px 10px" onclick="copyText('email-output', this)">Copy</button>
+            </div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px">Subject line: <span id="email-subject" style="font-weight:500;color:var(--text)"></span></div>
+            <div class="resume-output" id="email-output" style="min-height:120px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- History tab -->
+      <div id="tab-history" style="display:none">
+        <div id="history-empty" class="empty-state">No optimizations yet.</div>
+        <div id="history-list"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let history = [];
+  let currentResume = '';
+  let currentLabel = '';
+
+  const SAMPLE_RESUME = `PROFESSIONAL SUMMARY
+Customer Success Leader with 8+ years of experience specializing in SaaS onboarding, platform implementations, and high-growth revenue management in fast-paced, startup environments. Guided SMB to enterprise clients from sales handoff through activation and go-live, building the foundation for adoption, time to value, and long-term value. Experienced in managing cross-functional teams and using customer insights to influence product roadmaps and scale implementations, while operating independently in ambiguous environments.
+
+WORK EXPERIENCE
+
+Inato — Remote
+Project Manager, Customer Success | January 2024 – Present
+Owned onboarding and implementation support across 20+ concurrent customer initiatives for pharmaceutical clients, driving adoption, accelerating time to value, and successful go-lives on our AI-powered clinical trial platform.
+Managed a portfolio of 8+ active enterprise customers, prioritizing engagement based on lifecycle stage, customer needs, and customer success indicators.
+Partnered with customers to understand business goals, workflows, and challenges, providing guidance and solution optimization to improve platform usage and outcomes.
+Delivered onboarding across global teams through live sessions and customer training to support consistent rollout.
+Monitored engagement and success metrics to identify risks and resolve issues, maintaining customer satisfaction and momentum.
+Improved internal project management processes to increase consistency and scalability; shared customer feedback with Product to inform improvements.
+
+MikMak — Remote
+Customer Success Manager | October 2021 – February 2023
+Owned a $2MM ARR portfolio across 60+ SMB and mid-market accounts, managing the full customer lifecycle from onboarding through renewal with a 93%+ retention rate.
+Built and launched scalable onboarding programs in WorkRamp, including self-service training and webinars, to drive product adoption across a high-volume customer base.
+Led business reviews using platform data to share insights, highlight performance, and identify opportunities to improve adoption and expand use cases.
+Delivered product training for both technical and non-technical stakeholders, increasing feature/platform adoption and reducing support ticket volume.
+Partnered with Product and Engineering to translate customer feedback and performance insights into actionable roadmap enhancements.
+
+Nexus Systems, Inc. — Remote
+Customer Success Manager | January 2021 – October 2021
+Managed a portfolio of 100+ SMB and mid-market accounts, prioritizing engagement based on ARR, expansion potential, and account health.
+Led onboarding through webinars, training sessions, and standardized workflows to support high-volume customer activation and accelerate time to value.
+Monitored customer engagement and activity to identify at-risk accounts and drive targeted outreach to maintain retention and renewal readiness.
+Partnered with Sales to identify and support upsell opportunities across the portfolio, contributing to account growth.
+
+EDUCATION
+University of Massachusetts, Amherst
+Bachelor of Business Administration in Marketing | Bachelor of Arts in Communications | May 2016
+
+CORE COMPETENCIES
+CS Disciplines: Onboarding • Retention & Churn Strategy • Expansion Revenue • Executive QBRs • Escalation Management • Voice of Customer • Change Management
+Strengths: Cross-functional Collaboration • Data-Driven Storytelling • Process Building • Relationship Development
+
+TOOLS
+Salesforce, HubSpot, Zendesk, Gong, WorkRamp, Amplitude, Notion, Figma, Customer.io, Looker Studio, Microsoft Office Suite`;
+
+  function loadSampleResume() {
+    document.getElementById('resume-input').value = SAMPLE_RESUME;
+  }
+
+  function showResultTab(name) {
+    ['analysis','resume','history','interview','outreach'].forEach((t, i) => {
+      document.querySelectorAll('.tab')[i].classList.toggle('active', t === name);
+      document.getElementById('tab-' + t).style.display = t === name ? 'block' : 'none';
+    });
+  }
+
+  function setScore(elId, score) {
+    const el = document.getElementById(elId);
+    el.textContent = score;
+    el.className = 'score-ring ' + (score < 40 ? 'low' : score < 70 ? 'mid' : 'high');
+  }
+
+  async function analyze() {
+    const resume = document.getElementById('resume-input').value.trim();
+    const jd = document.getElementById('jd-input').value.trim();
+    const jobTitle = document.getElementById('job-title-input').value.trim() || 'This role';
+
+    if (!resume) { alert('Please paste the resume first.'); return; }
+    if (!jd) { alert('Please paste a job description.'); return; }
+
+    const btn = document.getElementById('analyze-btn');
+    const status = document.getElementById('status-msg');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Analyzing...';
+    status.textContent = '';
+
+    document.getElementById('analysis-empty').style.display = 'none';
+    document.getElementById('analysis-results').style.display = 'none';
+    document.getElementById('resume-empty').style.display = 'block';
+    document.getElementById('resume-results').style.display = 'none';
+
+    const prompt = `ATS resume optimizer. Keep all facts, companies, dates, metrics 100% truthful.
+
+RESUME: ${resume.substring(0, 1000)}
+JD: ${jd.substring(0, 600)}
+ROLE: ${jobTitle}
+
+ONLY rewrite these three sections — leave everything else exactly as-is:
+
+1. PROFESSIONAL SUMMARY: 2 sentences max. Lead with strongest metric. Mirror JD's top priority. No fluff.
+
+2. INATO bullets: Rewrite each bullet using JD's exact verbs where experience matches. Format: [verb] + [what] + [metric]. Max 12 words per bullet. Punchy, no filler.
+
+3. MIKMAK bullets: Same rules as Inato. Inject missing JD keywords naturally. Keep $2MM ARR and 93% retention stats.
+
+Do NOT rewrite Nexus, Convene, InnerWorkings, Education, or Tools sections.
+Do NOT include Core Competencies in the output at all.
+NEVER invent experience, companies, dates, or metrics.
+
+JSON only: {"scoreBefore":<int>,"scoreAfter":<int>,"missingKeywords":[<8 keywords>],"presentKeywords":[<5 keywords>],"topAtsPhrases":[<5 phrases>],"keywordsAdded":<int>,"optimizedResume":"<rewritten resume, \\n for newlines>"}`
+
+    try {
+      const res = await fetch('/api/optimize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'API error');
+
+      const result = JSON.parse(data.result);
+
+      // Scores
+      setScore('score-before', result.scoreBefore);
+      document.getElementById('score-after').textContent = result.scoreAfter;
+      const bar = document.getElementById('score-bar');
+      bar.style.width = result.scoreAfter + '%';
+      bar.className = 'progress-bar ' + (result.scoreAfter < 40 ? 'low' : result.scoreAfter < 70 ? 'mid' : '');
+      document.getElementById('kw-added-count').textContent = result.keywordsAdded;
+
+      // Pills
+      document.getElementById('pills-missing').innerHTML =
+        result.missingKeywords.map(k => `<span class="pill pill-missing">${k}</span>`).join('');
+      document.getElementById('pills-present').innerHTML =
+        result.presentKeywords.map(k => `<span class="pill pill-present">${k}</span>`).join('');
+      document.getElementById('pills-phrases').innerHTML =
+        result.topAtsPhrases.map(k => `<span class="pill pill-added">${k}</span>`).join('');
+
+      document.getElementById('analysis-results').style.display = 'block';
+
+      // Resume
+      currentResume = result.optimizedResume;
+      currentLabel = jobTitle;
+      document.getElementById('resume-label').textContent = 'Optimized for: ' + jobTitle;
+      document.getElementById('resume-output').textContent = result.optimizedResume;
+      document.getElementById('resume-empty').style.display = 'none';
+      document.getElementById('resume-results').style.display = 'block';
+
+
+      // History
+      history.unshift({
+        title: jobTitle,
+        scoreBefore: result.scoreBefore,
+        scoreAfter: result.scoreAfter,
+        resume: result.optimizedResume,
+        timestamp: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+      });
+      renderHistory();
+
+      status.textContent = 'Done';
+      setTimeout(() => { status.textContent = ''; }, 2000);
+    } catch (e) {
+      status.textContent = 'Error: ' + e.message;
+      document.getElementById('analysis-empty').style.display = 'block';
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = 'Analyze &amp; optimize';
+  }
+
+  function renderHistory() {
+    const list = document.getElementById('history-list');
+    const empty = document.getElementById('history-empty');
+    if (!history.length) { empty.style.display = 'block'; list.innerHTML = ''; return; }
+    empty.style.display = 'none';
+    list.innerHTML = history.map((h, i) => `
+      <div class="history-item" onclick="loadHistory(${i})">
+        <div class="history-item-title">${h.title}</div>
+        <div class="history-item-meta">${h.timestamp} · Score: ${h.scoreBefore} → ${h.scoreAfter}</div>
+      </div>
+    `).join('');
+  }
+
+  function loadHistory(i) {
+    const h = history[i];
+    currentResume = h.resume;
+    currentLabel = h.title;
+    document.getElementById('resume-label').textContent = 'Optimized for: ' + h.title;
+    document.getElementById('resume-output').textContent = h.resume;
+    document.getElementById('resume-empty').style.display = 'none';
+    document.getElementById('resume-results').style.display = 'block';
+    showResultTab('resume');
+  }
+
+  function copyResume() {
+    if (!currentResume) return;
+    navigator.clipboard.writeText(currentResume).then(() => {
+      const btns = document.querySelectorAll('#resume-results .btn-outline');
+      btns[0].textContent = 'Copied!';
+      setTimeout(() => { btns[0].textContent = 'Copy'; }, 1500);
+    });
+  }
+
+  function downloadResume() {
+    if (!currentResume) return;
+    const blob = new Blob([currentResume], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = (currentLabel || 'optimized-resume').replace(/[^a-z0-9]/gi, '-').toLowerCase() + '.txt';
+    a.click();
+  }
+
+  async function runInterviewPrep() {
+    const resume = document.getElementById('resume-input').value.trim();
+    const jd = document.getElementById('jd-input').value.trim();
+    const jobTitle = document.getElementById('job-title-input').value.trim() || 'This role';
+    if (!resume) { alert('Please paste the resume first.'); return; }
+    if (!jd) { alert('Please paste a job description.'); return; }
+    const btn = document.getElementById('interview-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Generating...';
+    await generateInterviewQuestions(resume, jd, jobTitle);
+    btn.disabled = false;
+    btn.innerHTML = 'Generate interview prep';
+    showResultTab('interview');
+  }
+
+  async function generateInterviewQuestions(resume, jd, jobTitle) {
+    document.getElementById('interview-empty').style.display = 'block';
+    document.getElementById('interview-results').style.display = 'none';
+
+    const prompt = `Interview coach. Give me the 5 hardest interview questions for this role — the ones that trip candidates up, expose gaps, or require specific proof. Skip the softballs.
+
+ROLE: ${jobTitle}
+RESUME: ${resume.substring(0, 1200)}
+JD: ${jd.substring(0, 800)}
+
+For each: a sharp suggested answer using real resume experience (2-3 sentences max, specific and punchy) + one blunt coaching tip on the trap to avoid.
+
+Raw JSON only, no markdown:
+{"questions":[{"number":1,"theme":"behavioral","question":"...","suggestedAnswer":"...","tip":"..."}]}
+theme = behavioral | technical | situational | culture`;
+
+    try {
+      const res = await fetch('/api/interview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'API error');
+      const result = JSON.parse(data.result);
+      renderQuestions(result.questions, jobTitle);
+    } catch (e) {
+      document.getElementById('interview-empty').textContent = 'Could not generate questions: ' + e.message;
+    }
+  }
+
+  let allExpanded = false;
+  function toggleAllQuestions() {
+    allExpanded = !allExpanded;
+    document.querySelectorAll('.q-body').forEach(b => b.classList.toggle('open', allExpanded));
+    document.querySelectorAll('.q-chevron').forEach(c => c.classList.toggle('open', allExpanded));
+    document.querySelector('.expand-all-btn').textContent = allExpanded ? 'Collapse all' : 'Expand all';
+  }
+
+  function toggleQuestion(i) {
+    const body = document.getElementById('qbody-' + i);
+    const chev = document.getElementById('qchev-' + i);
+    body.classList.toggle('open');
+    chev.classList.toggle('open');
+  }
+
+  function renderQuestions(questions, jobTitle) {
+    const themeClass = { behavioral: 'theme-behavioral', technical: 'theme-technical', situational: 'theme-situational', culture: 'theme-culture' };
+    document.getElementById('interview-label').textContent = 'Prepared for: ' + jobTitle;
+    document.getElementById('questions-list').innerHTML = questions.map((q, i) => `
+      <div class="q-card">
+        <div class="q-header" onclick="toggleQuestion(${i})">
+          <span class="q-number">${q.number}.</span>
+          <span class="q-text">${q.question}</span>
+          <span class="q-theme ${themeClass[q.theme] || 'theme-culture'}">${q.theme}</span>
+          <span class="q-chevron" id="qchev-${i}">▼</span>
+        </div>
+        <div class="q-body" id="qbody-${i}">
+          <div class="q-section-label">Suggested answer</div>
+          <div class="q-answer">${q.suggestedAnswer}</div>
+          <div class="q-section-label">Coaching tip</div>
+          <div class="q-tip">${q.tip}</div>
+        </div>
+      </div>
+    `).join('');
+    document.getElementById('interview-empty').style.display = 'none';
+    document.getElementById('interview-results').style.display = 'block';
+  }
+
+  async function runOutreach() {
+    const resume = document.getElementById('resume-input').value.trim();
+    const jd = document.getElementById('jd-input').value.trim();
+    const jobTitle = document.getElementById('job-title-input').value.trim() || 'This role';
+    if (!resume) { alert('Please paste the resume first.'); return; }
+    if (!jd) { alert('Please paste a job description.'); return; }
+    const btn = document.getElementById('outreach-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Generating...';
+    document.getElementById('status-msg').textContent = '';
+
+    const prompt = `You are a sharp career coach writing outreach messages for a job candidate. Write two messages — one for LinkedIn, one email — to a hiring manager for this role. Both must be punchy, specific, and end with a clear call to action.
+
+ROLE: ${jobTitle}
+RESUME HIGHLIGHTS: ${resume.substring(0, 800)}
+JD PRIORITIES: ${jd.substring(0, 600)}
+
+Rules:
+- LinkedIn: under 300 characters. One hook sentence using a real metric, one connection to the role, one CTA. No fluff.
+- Email: 4 sentences max. Subject line that gets opened. Lead with the strongest metric. End with a specific ask (15-min call, link to apply, etc). Warm but direct tone.
+- Use REAL numbers and companies from the resume — never generic phrases like "proven track record"
+
+Raw JSON only, no markdown:
+{"linkedinMessage":"...","emailSubject":"...","emailBody":"..."}`;
+
+    try {
+      const res = await fetch('/api/outreach', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'API error');
+      const result = JSON.parse(data.result);
+
+      document.getElementById('outreach-label').textContent = 'Outreach for: ' + jobTitle;
+      document.getElementById('linkedin-output').textContent = result.linkedinMessage;
+      document.getElementById('email-subject').textContent = result.emailSubject;
+      document.getElementById('email-output').textContent = result.emailBody;
+      document.getElementById('outreach-empty').style.display = 'none';
+      document.getElementById('outreach-results').style.display = 'block';
+      showResultTab('outreach');
+    } catch (e) {
+      document.getElementById('outreach-empty').textContent = 'Error: ' + e.message;
+      document.getElementById('outreach-empty').style.display = 'block';
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = 'Generate outreach';
+  }
+
+  function copyText(elId, btn) {
+    const text = document.getElementById(elId).textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'Copied!';
+      setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
+    });
+  }
+</script>
+</body>
+</html>
