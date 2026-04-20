@@ -20,7 +20,16 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 1600,
-        messages: [{ role: 'user', content: prompt }]
+        messages: [
+          {
+            role: 'user',
+            content: prompt
+          },
+          {
+            role: 'assistant',
+            content: '{'
+          }
+        ]
       })
     });
 
@@ -32,14 +41,19 @@ export default async function handler(req, res) {
 
     const text = data.content?.find(b => b.type === 'text')?.text || '';
 
-    // Aggressively strip all possible wrapping: backticks, ```json, whitespace
-    const clean = text
-      .replace(/^`+/gm, '')
-      .replace(/`+$/gm, '')
-      .replace(/^```json\s*/i, '')
-      .replace(/^```\s*/i, '')
-      .replace(/\s*```$/i, '')
-      .trim();
+    // Reconstruct — we prefilled the opening brace
+    const raw = '{' + text;
+
+    // Strip any trailing backticks or extra content after the closing brace
+    const lastBrace = raw.lastIndexOf('}');
+    const clean = lastBrace > 0 ? raw.substring(0, lastBrace + 1) : raw;
+
+    // Validate it parses
+    try {
+      JSON.parse(clean);
+    } catch (parseErr) {
+      return res.status(500).json({ error: 'JSON parse failed: ' + parseErr.message + ' | Raw: ' + clean.substring(0, 200) });
+    }
 
     return res.status(200).json({ result: clean });
   } catch (err) {
